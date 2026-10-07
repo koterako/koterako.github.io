@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>原子の世界｜事前テスト</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",sans-serif;background:#f6f8fb;color:#202733}
+main{max-width:760px;margin:0 auto;padding:32px 20px 50px}
+.hero{text-align:center;padding:18px 4px 24px}
+.label{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.12em;color:#687386;margin-bottom:12px}
+h1{font-size:clamp(25px,6vw,38px);margin:0 0 12px;line-height:1.35}
+.lead{color:#687386;line-height:1.8;margin:0}
+.card{background:white;border:1px solid #dfe4ec;border-radius:22px;padding:26px;box-shadow:0 8px 28px rgba(30,45,70,.07)}
+.question{font-size:clamp(19px,4vw,25px);font-weight:700;line-height:1.6;margin-bottom:20px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.choice input{position:absolute;opacity:0}
+.choice label{display:flex;align-items:center;justify-content:center;min-height:72px;border:2px solid #dfe4ec;border-radius:15px;background:#fbfcfe;font-size:18px;font-weight:650;cursor:pointer}
+.choice input:checked+label{border-color:#5668d8;background:#eef0ff}
+.choice input:focus-visible+label{outline:3px solid #cdd3ff;outline-offset:2px}
+.hint{font-size:14px;color:#687386;margin:15px 0 22px}
+.actions{display:flex;justify-content:flex-end}
+button{font:inherit}
+.next{border:0;border-radius:13px;background:#5668d8;color:white;font-weight:750;padding:14px 22px;min-height:50px;cursor:pointer}
+.next:disabled{opacity:.45;cursor:not-allowed}
+.result{display:none;text-align:center;padding:12px 4px}
+.result .icon{font-size:45px;margin-bottom:8px}
+.result h2{font-size:23px;margin:0 0 10px}
+.result p{color:#687386;line-height:1.8;margin:0 0 22px}
+.reset{border:1px solid #dfe4ec;background:white;border-radius:12px;padding:12px 18px;font-weight:700;cursor:pointer}
+@media(max-width:560px){main{padding:20px 14px 40px}.card{padding:20px}.choices{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<section class="hero">
+<div class="label">QUESTION 01</div>
+<h1>原子の世界を探検しよう</h1>
+<p class="lead">まずは、あなたの予想を聞かせてください。</p>
+</section>
+<section class="card">
+<div id="questionArea">
+<div style="margin-bottom:22px">
+<label for="participantId" style="display:block;font-weight:700;margin-bottom:8px">参加者ID</label>
+<input id="participantId" type="text" placeholder="例：A001" autocomplete="off" style="width:100%;min-height:50px;border:2px solid #dfe4ec;border-radius:13px;padding:10px 14px;font:inherit;font-size:17px">
+<div class="hint" style="margin:8px 0 0">※ 実験者から伝えられたIDを入力してください。</div>
+</div>
+<div class="question">水は、なにからできているだろうか？</div>
+<div class="choices">
+<div class="choice"><input type="checkbox" id="h" value="水素"><label for="h">水素</label></div>
+<div class="choice"><input type="checkbox" id="o" value="酸素"><label for="o">酸素</label></div>
+<div class="choice"><input type="checkbox" id="c" value="炭素"><label for="c">炭素</label></div>
+<div class="choice"><input type="checkbox" id="n" value="窒素"><label for="n">窒素</label></div>
+</div>
+<div class="hint">※ あてはまるものをすべて選んでください。</div>
+<div class="actions"><button class="next" id="next" disabled>予想を決定する</button></div>
+<form id="saveForm" method="POST" action="https://script.google.com/macros/s/AKfycbx-O3tVCMVuMF4eNTrW7NjJgPqgQ7syOarSjkOeFVu9enumS7VRlbeY35qoGHYcHzBsYA/exec" target="saveFrame" style="display:none">
+<input type="hidden" name="participantId" id="saveParticipantId">
+<input type="hidden" name="question1" id="saveQuestion1">
+</form>
+<iframe name="saveFrame" id="saveFrame" style="display:none"></iframe>
+</div>
+<div class="result" id="result">
+<div class="icon">🔬</div>
+<h2>予想を記録しました！</h2>
+<p>今はまだ正解を確認しません。<br>それでは、実際に原子を組み合わせて確かめてみましょう。</p>
+<button class="reset" id="reset">もう一度回答する</button>
+</div>
+</section>
+</main>
+<script>
+const checks=[...document.querySelectorAll('input[type="checkbox"]')];
+const next=document.getElementById('next');
+const participantId=document.getElementById('participantId');
+const saveForm=document.getElementById('saveForm');
+const saveParticipantId=document.getElementById('saveParticipantId');
+const saveQuestion1=document.getElementById('saveQuestion1');
+const question=document.getElementById('questionArea');
+const result=document.getElementById('result');
+const reset=document.getElementById('reset');
+function update(){next.disabled=!(participantId.value.trim() && checks.some(x=>x.checked))}
+participantId.addEventListener('input',update);
+checks.forEach(x=>x.addEventListener('change',update));
+next.addEventListener('click',()=>{
+  const answers=checks.filter(x=>x.checked).map(x=>x.value);
+  console.log("事前回答:",answers);
+  saveParticipantId.value=participantId.value.trim();
+  saveQuestion1.value=answers.join('、');
+  saveForm.submit();
+  question.style.display="none";
+  result.style.display="block";
+});
+reset.addEventListener('click',()=>{
+  checks.forEach(x=>x.checked=false);
+  participantId.value='';
+  question.style.display="block";
+  result.style.display="none";
+  update();
+});
+</script>
+</body>
+</html>
